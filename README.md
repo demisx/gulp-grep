@@ -10,7 +10,7 @@ from the stream based on a glob match or a conditional function.
 Filter in objects matching certain criteria and perform some actions on them.
 
 ```js
-# via a conditional function
+// via a conditional function
 var grep = require('gulp-grep'),
   deletedFilesFilter = grep(function(file) {
     return file.event === 'deleted';
@@ -25,7 +25,7 @@ gulp.src(['app/**/*.*'], { read: false })
 ```
 
 ```js
-# via a glob
+// via a glob
 var grep = require('gulp-grep')
 
 gulp.src('app/**/*.*', { read: false }) 
@@ -49,7 +49,7 @@ filtered-out objects, the latter will be joined with the
 filtered-in objects and passed downstream together.
 
 ```js
-# via a glob
+// via a glob
 var grep = require('gulp-grep'),
   coffee = require('gulp-coffee'),
   coffeeScriptFilter = grep('**/*.coffee', { restorable: true }),
