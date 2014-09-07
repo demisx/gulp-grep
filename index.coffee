@@ -56,7 +56,7 @@ module.exports = (patterns, opt) ->
       else
         for pattern in patterns
           do (pattern) ->
-            result = result || minimatch(file.path, pattern)
+            result = result || minimatch(file.path, pattern, opt)
 
     gutil.log "[DEBUG] match result: #{result}" if opt.debug
     result
