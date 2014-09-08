@@ -35,9 +35,9 @@ module.exports = (patterns, opt) ->
 
     if opt.restorable
       gutil.log "[DEBUG] writing #{file.path} to filteredOutStream" if opt.debug
-      filteredOutStream.write file, cb
-    else
-      cb()
+      filteredOutStream.write file
+    
+    cb()
     return
 
   _flush = (cb) ->

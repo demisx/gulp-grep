@@ -37,7 +37,7 @@ describe "grep()", ->
       return
     return
 
-  context "filters out object from stream", ->
+  context "filters out objects from stream", ->
     it "when `patterns` is a Function", () ->
       patterns = (file) ->
         file.path.match /^.*\.js$/
