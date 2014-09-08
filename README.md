@@ -1,13 +1,13 @@
 gulp-grep
 ============
 
-A [gulp](https://github.com/gulpjs/gulp) plugin for filtering out objects 
+A [gulp](https://github.com/gulpjs/gulp) plugin for filtering out file objects 
 from the stream based on a glob match or a conditional function.
 
 ## Usage
 
 ### Use case 1
-Filter in objects matching certain criteria and perform some actions on them.
+Filter in file objects matching certain criteria and perform some actions on them.
 
 ```js
 // via a conditional function
@@ -16,7 +16,7 @@ var grep = require('gulp-grep'),
     return file.event === 'deleted';
   })
 
-gulp.src(['app/**/*.*'], { read: false })
+gulp.src(['app/**/*.*'], { read: false }) // set `read` to false if you don't want to read file contents
   .pipe(deletedFilesFilter)
   // only deleted files passed down from here on
   .pipe(doSomethingOnDeletedFiles())
@@ -31,19 +31,19 @@ var grep = require('gulp-grep')
 gulp.src('app/**/*.*', { read: false }) 
   // filter in CoffeeScript files
   .pipe(grep('**/*.coffee'))
-  // only CoffeeScript files passed down from here on
+  // only CoffeeScript files are passed downstream from here on
   .pipe(doSomethingOnCoffeeFiles())
   ... ... ... 
 });
 ```
 
 ### Use case 2
-Filter in objects matching certain criteria, perform some actions on them, then
-restore filtered-out objects downstream to perform additional actions on them too.
+Filter in file objects matching certain criteria, perform some actions on them, then
+restore filtered-out file objects downstream to perform additional actions on them too.
 
 **Please note**:
 * the stream filter needs to be created as `{restorable: true}` in
-order to be able to restore the objects filetered out by this filter later.
+order to be able to restore the filetered out by this filter objects later in the stream pipeline.
 * if you don't pipe `allFilesFilter` in the example below prior to restoring 
 filtered-out objects, the latter will be joined with the 
 filtered-in objects and passed downstream together.
@@ -91,11 +91,11 @@ or excluding this `file` object from the stream respectively.
 * `options`
   * `restorable` := true | false (default)
   Set this option to true if you want to be able to restore filtered-out
-  objects downstream
+  objects downstream later on
   * `debug` := true | false (default)
   Set this option to true if you want to turn in debuging mode and see what
   exactly is going on under the hood.
-  * `...` any other option is a passed through to [minmatch](https://github.com/isaacs/minimatch)
+  * `...` any other option is passed through to [minmatch](https://github.com/isaacs/minimatch)
   module
 
 
