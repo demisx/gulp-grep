@@ -52,7 +52,7 @@ filtered-in objects and passed downstream together.
 // via a glob
 var grep = require('gulp-grep'),
   coffee = require('gulp-coffee'),
-  coffeeScriptFilter = grep('**/*.coffee', { restorable: true }),
+  coffeeScriptFilter = grep(['**/*.coffee','!**/*-test.coffee'], { restorable: true }),
   htmlFilter = grep('**/*.html'),
   allFilesFilter = grep('**/*.*')
 
