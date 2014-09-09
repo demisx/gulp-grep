@@ -5,7 +5,8 @@ minimatch = require "minimatch"
 _  = require "lodash"
 
 log4js = require 'log4js'
-log4js.configure 'log4js.config.json', {}
+
+log4js.configure "#{__dirname}/log4js.config.json", {}
 log = log4js.getLogger()
 
 PLUGIN_NAME = "gulp-grep"
