@@ -2,7 +2,11 @@
 gutil = require "gulp-util"
 through = require "through2"
 minimatch = require "minimatch"
-_ = require "lodash"
+_  = require "lodash"
+
+log4js = require 'log4js'
+log4js.configure 'log4js.config.json', {}
+log = log4js.getLogger()
 
 PLUGIN_NAME = "gulp-grep"
 
@@ -18,13 +22,19 @@ _splitPositivesNegatives = (arr) ->
 
 module.exports = (patterns, opt) ->
   opt = opt or {}
+  
+  log.setLevel 'DEBUG' if opt.debug
 
-  if opt.debug
-    gutil.log("[DEBUG] --> Executing gulp.grep()]")
-    gutil.log("[DEBUG] arg `patterns`: ", patterns)
-    gutil.log("[DEBUG] arg `opt`: ", opt)
+  log.debug "[gulp.grep()]"
+  log.debug "  arg `patterns`: ", patterns
+  log.debug "  arg `options`: ", opt
 
-  gutil.log "[DEBUG] --> Validating params..." if opt.debug
+  minimatchOpt = _.omit opt, ['debug', 'restorable']
+  log.debug "  minimatch options object:", minimatchOpt
+
+  
+
+  log.debug "  validating params..."
   throw new gutil.PluginError(
     PLUGIN_NAME,
     "`patterns` should be an array, string, or a function"
@@ -33,7 +43,7 @@ module.exports = (patterns, opt) ->
     "function"
   ].indexOf(typeof patterns) is -1) and not Array.isArray(patterns)
   
-  gutil.log "[DEBUG] --> Normalizing params..." if opt.debug
+  log.debug "  normalizing params..."
   patterns = [patterns] if typeof patterns is "string"
   splitPatterns = _splitPositivesNegatives patterns
 
@@ -41,29 +51,29 @@ module.exports = (patterns, opt) ->
  
 
   _transform = (file, enc, cb) ->
-    gutil.log "[DEBUG] --> Executing _transform()" if opt.debug
+    log.debug "[_transform()]"
     if _match file
-      gutil.log "[DEBUG] match found: #{file.path}" if opt.debug
+      log.debug "  match found: #{file.path}"
       @push file
       return cb()
 
     if opt.restorable
-      gutil.log "[DEBUG] writing #{file.path} to filteredOutStream" if opt.debug
+      log.debug "  writing #{file.path} to filteredOutStream"
       filteredOutStream.write file
     
     cb()
     return
 
   _flush = (cb) ->
-    gutil.log "[DEBUG] --> Executing _flush()" if opt.debug
+    log.debug "[_flush()]"
     filteredOutStream and filteredOutStream.end()
     cb()
     return
 
 
   _match = (file) ->
-    gutil.log "[DEBUG] --> Executing _match()" if opt.debug
-    gutil.log "[DEBUG] file: #{file}" if opt.debug
+    log.debug "[_match()]"
+    log.debug "  file: #{file}"
     result = undefined
     switch typeof patterns
       when "function"
@@ -71,26 +81,26 @@ module.exports = (patterns, opt) ->
       else
         # splitPatterns = _splitPositivesNegatives(patterns)
 
-        gutil.log "[DEBUG] positives: #{splitPatterns.positives}" if opt.debug
-        gutil.log "[DEBUG] negatives: #{splitPatterns.negatives}" if opt.debug
+        log.debug "  positives: #{splitPatterns.positives}"
+        log.debug "  negatives: #{splitPatterns.negatives}"
 
         for pattern in splitPatterns.positives
           do (pattern) ->
-            result = result || minimatch(file.path, pattern, opt)
+            result = result || minimatch(file.path, pattern, minimatchOpt)
           break if result
 
         for pattern in splitPatterns.negatives
           do (pattern) ->
-            result = result && minimatch(file.path, pattern, opt)
+            result = result && minimatch(file.path, pattern, minimatchOpt)
           break if not result
 
-    gutil.log "[DEBUG] match result: #{result}" if opt.debug
+    log.debug " match?: #{result}"
     result
 
   stream = through.obj(_transform, _flush)
 
   stream.restoreFilteredOut = ->
-    gutil.log "[DEBUG] --> Executing restoreFilteredOut()" if opt.debug
+    log.debug "[restoreFilteredOut()]"
     opt.restorable || throw new gutil.PluginError(
       PLUGIN_NAME,
       "cannot call restoreFilteredOut() on a non-restorable stream.
