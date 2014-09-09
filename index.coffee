@@ -1,8 +1,21 @@
 "use strict"
-gutil = require("gulp-util")
-through = require("through2")
-minimatch = require("minimatch")
+gutil = require "gulp-util"
+through = require "through2"
+minimatch = require "minimatch"
+_ = require "lodash"
+
 PLUGIN_NAME = "gulp-grep"
+
+_splitPositivesNegatives = (arr) ->
+  pos = _.remove arr, (el) ->
+    /^(?!\!).*/.test el
+  neg = _.remove arr, (el) ->
+    /^(?=\!).*/.test el
+
+  positives: pos
+  negatives: neg
+
+
 module.exports = (patterns, opt) ->
   opt = opt or {}
 
@@ -22,10 +35,11 @@ module.exports = (patterns, opt) ->
   
   gutil.log "[DEBUG] --> Normalizing params..." if opt.debug
   patterns = [patterns] if typeof patterns is "string"
-  
-  gutil.log "[DEBUG] --> Normalizing params..." if opt.debug
+  splitPatterns = _splitPositivesNegatives patterns
+
   filteredOutStream = through.obj()  if opt.restorable
  
+
   _transform = (file, enc, cb) ->
     gutil.log "[DEBUG] --> Executing _transform()" if opt.debug
     if _match file
@@ -46,6 +60,7 @@ module.exports = (patterns, opt) ->
     cb()
     return
 
+
   _match = (file) ->
     gutil.log "[DEBUG] --> Executing _match()" if opt.debug
     gutil.log "[DEBUG] file: #{file}" if opt.debug
@@ -54,9 +69,20 @@ module.exports = (patterns, opt) ->
       when "function"
         result = patterns(file)
       else
-        for pattern in patterns
+        # splitPatterns = _splitPositivesNegatives(patterns)
+
+        gutil.log "[DEBUG] positives: #{splitPatterns.positives}" if opt.debug
+        gutil.log "[DEBUG] negatives: #{splitPatterns.negatives}" if opt.debug
+
+        for pattern in splitPatterns.positives
           do (pattern) ->
             result = result || minimatch(file.path, pattern, opt)
+          break if result
+
+        for pattern in splitPatterns.negatives
+          do (pattern) ->
+            result = result && minimatch(file.path, pattern, opt)
+          break if not result
 
     gutil.log "[DEBUG] match result: #{result}" if opt.debug
     result

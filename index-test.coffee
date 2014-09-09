@@ -38,14 +38,14 @@ describe "grep()", ->
     return
 
   context "filters out objects from stream", ->
-    it "when `patterns` is a Function", () ->
+    it "when `patterns` is a Function", ->
       patterns = (file) ->
         file.path.match /^.*\.js$/
 
       grepFilter = grep patterns
       objectCounter = 0
 
-      grepFilter.on "data", () ->
+      grepFilter.on "data", ->
         objectCounter++
         return
 
@@ -57,13 +57,13 @@ describe "grep()", ->
       expect(objectCounter).to.equal 1
       return
 
-    it "when `patterns` is an Array", () ->
+    it "when `patterns` is an Array", ->
       patterns = ['*.js', '**/*.bak']
 
       grepFilter = grep patterns
       objectCounter = 0
 
-      grepFilter.on "data", () ->
+      grepFilter.on "data", ->
         objectCounter++
         return
 
@@ -75,15 +75,37 @@ describe "grep()", ->
       
       expect(objectCounter).to.equal 2
       return
+
+    it "when `patterns` contain exclusions", ->
+      patterns = [
+        '**/*.js', '**/*.bak', '!**/file1.js', '**/*.css', '!**/*/*.bak'
+      ]
+
+      grepFilter = grep patterns
+      objectCounter = 0
+
+      grepFilter.on "data", ->
+        objectCounter++
+        return
+
+      grepFilter.write { path: "dir1/file1.coffee" }
+      grepFilter.write { path: "dir2/file2.js" }
+      grepFilter.write { path: "dir3/subdir1/file1.js" }
+      grepFilter.write { path: "file2.css" }
+      grepFilter.write { path: "file3.js.bak" }
+      grepFilter.write { path: "dir3/subdir2/file3.js.bak" }
+      grepFilter.end()
+      
+      expect(objectCounter).to.equal 3
     return
 
   describe "restoreFilteredOut()", ->
-    it 'restores stream with filtered out matches', () ->
+    it 'restores stream with filtered out matches', ->
       patterns = ['*.js', '**/*.bak']
 
       grepFilter = grep patterns, { restorable: true }
 
-      grepFilter.on "finish", () ->
+      grepFilter.on "finish", ->
         restoreFilteredOut = grepFilter.restoreFilteredOut()
         expect(restoreFilteredOut._readableState.length).to.equal 3
         return
