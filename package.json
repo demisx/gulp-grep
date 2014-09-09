@@ -1,7 +1,7 @@
 {
   "name": "gulp-grep",
   "description": " A gulp plugin for filtering stream objects matching certain conditions",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "homepage": "https://github.com/demisx/gulp-grep",
   "repository": {
     "type": "git",
@@ -22,6 +22,7 @@
   ],
   "dependencies": {
     "lodash": "^2.4.1",
+    "log4js": "^0.6.20",
     "minimatch": "^1.0.0",
     "through2": "^0.6.1"
   },
