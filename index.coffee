@@ -12,25 +12,27 @@ log = log4js.getLogger()
 PLUGIN_NAME = "gulp-grep"
 
 _splitPositivesNegatives = (arr) ->
-  pos = _.remove arr, (el) ->
+  pos = _.filter arr, (el) ->
     /^(?!\!).*/.test el
-  neg = _.remove arr, (el) ->
+
+  neg = _.filter arr, (el) ->
     /^(?=\!).*/.test el
 
   positives: pos
   negatives: neg
 
 
-module.exports = (patterns, opt) ->
-  opt = opt or {}
+module.exports = (pat, opt) ->
+  options = opt or {}
+  patterns = pat or {}
   
-  log.setLevel 'DEBUG' if opt.debug
+  log.setLevel 'DEBUG' if options.debug
 
   log.debug "[gulp.grep()]"
   log.debug "  arg `patterns`: ", patterns
-  log.debug "  arg `options`: ", opt
+  log.debug "  arg `options`: ", options
 
-  minimatchOpt = _.omit opt, ['debug', 'restorable']
+  minimatchOpt = _.omit options, ['debug', 'restorable']
   log.debug "  minimatch options object:", minimatchOpt
 
   
@@ -42,13 +44,15 @@ module.exports = (patterns, opt) ->
   ) if ([
     "string"
     "function"
-  ].indexOf(typeof patterns) is -1) and not Array.isArray(patterns)
+  ].indexOf(typeof pat) is -1) and not Array.isArray(pat)
   
   log.debug "  normalizing params..."
   patterns = [patterns] if typeof patterns is "string"
   splitPatterns = _splitPositivesNegatives patterns
 
-  filteredOutStream = through.obj()  if opt.restorable
+  log.debug "  splitPatterns", splitPatterns
+
+  filteredOutStream = through.obj()  if options.restorable
  
 
   _transform = (file, enc, cb) ->
@@ -58,7 +62,7 @@ module.exports = (patterns, opt) ->
       @push file
       return cb()
 
-    if opt.restorable
+    if options.restorable
       log.debug "  writing #{file.path} to filteredOutStream"
       filteredOutStream.write file
     
@@ -80,8 +84,6 @@ module.exports = (patterns, opt) ->
       when "function"
         result = patterns(file)
       else
-        # splitPatterns = _splitPositivesNegatives(patterns)
-
         log.debug "  positives: #{splitPatterns.positives}"
         log.debug "  negatives: #{splitPatterns.negatives}"
 
@@ -102,7 +104,7 @@ module.exports = (patterns, opt) ->
 
   stream.restoreFilteredOut = ->
     log.debug "[restoreFilteredOut()]"
-    opt.restorable || throw new gutil.PluginError(
+    options.restorable || throw new gutil.PluginError(
       PLUGIN_NAME,
       "cannot call restoreFilteredOut() on a non-restorable stream.
       Create stream with { restorable: true } first."
