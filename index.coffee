@@ -7,7 +7,7 @@ _  = require "lodash"
 log4js = require 'log4js'
 
 log4js.configure "#{__dirname}/log4js.config.json", {}
-log = log4js.getLogger()
+console = log4js.getLogger()
 
 PLUGIN_NAME = "gulp-grep"
 
@@ -26,18 +26,18 @@ module.exports = (pat, opt) ->
   options = opt or {}
   patterns = pat or {}
   
-  log.setLevel 'DEBUG' if options.debug
+  console.setLevel 'DEBUG' if options.debug
 
-  log.debug "[gulp.grep()]"
-  log.debug "  arg `patterns`: ", patterns
-  log.debug "  arg `options`: ", options
+  console.debug "[gulp.grep()]"
+  console.debug "  arg `patterns`: ", patterns
+  console.debug "  arg `options`: ", options
 
   minimatchOpt = _.omit options, ['debug', 'restorable']
-  log.debug "  minimatch options object:", minimatchOpt
+  console.debug "  minimatch options object:", minimatchOpt
 
   
 
-  log.debug "  validating params..."
+  console.debug "  validating params..."
   throw new gutil.PluginError(
     PLUGIN_NAME,
     "`patterns` should be an array, string, or a function"
@@ -46,46 +46,46 @@ module.exports = (pat, opt) ->
     "function"
   ].indexOf(typeof pat) is -1) and not Array.isArray(pat)
   
-  log.debug "  normalizing params..."
+  console.debug "  normalizing params..."
   patterns = [patterns] if typeof patterns is "string"
   splitPatterns = _splitPositivesNegatives patterns
 
-  log.debug "  splitPatterns", splitPatterns
+  console.debug "  splitPatterns", splitPatterns
 
   filteredOutStream = through.obj()  if options.restorable
  
 
   _transform = (file, enc, cb) ->
-    log.debug "[_transform()]"
+    console.debug "[_transform()]"
     if _match file
-      log.debug "  match found: #{file.path}"
+      console.debug "  match found: #{file.path}"
       @push file
       return cb()
 
     if options.restorable
-      log.debug "  writing #{file.path} to filteredOutStream"
+      console.debug "  writing #{file.path} to filteredOutStream"
       filteredOutStream.write file
     
     cb()
     return
 
   _flush = (cb) ->
-    log.debug "[_flush()]"
+    console.debug "[_flush()]"
     filteredOutStream and filteredOutStream.end()
     cb()
     return
 
 
   _match = (file) ->
-    log.debug "[_match()]"
-    log.debug "  file: #{file}"
+    console.debug "[_match()]"
+    console.debug "  file: #{file}"
     result = undefined
     switch typeof patterns
       when "function"
         result = patterns(file)
       else
-        log.debug "  positives: #{splitPatterns.positives}"
-        log.debug "  negatives: #{splitPatterns.negatives}"
+        console.debug "  positives: #{splitPatterns.positives}"
+        console.debug "  negatives: #{splitPatterns.negatives}"
 
         for pattern in splitPatterns.positives
           do (pattern) ->
@@ -97,13 +97,13 @@ module.exports = (pat, opt) ->
             result = result && minimatch(file.path, pattern, minimatchOpt)
           break if not result
 
-    log.debug " match?: #{result}"
+    console.debug " match?: #{result}"
     result
 
   stream = through.obj(_transform, _flush)
 
   stream.restoreFilteredOut = ->
-    log.debug "[restoreFilteredOut()]"
+    console.debug "[restoreFilteredOut()]"
     options.restorable || throw new gutil.PluginError(
       PLUGIN_NAME,
       "cannot call restoreFilteredOut() on a non-restorable stream.
