@@ -21,6 +21,7 @@
     "grep"
   ],
   "dependencies": {
+    "gulp-util": "^3.0.1",
     "lodash": "^2.4.1",
     "log4js": "^0.6.20",
     "minimatch": "^1.0.0",
@@ -36,7 +37,6 @@
     "gulp-plumber": "^0.6.5",
     "gulp-rimraf": "^0.1.0",
     "gulp-using": "0.0.1",
-    "gulp-util": "^3.0.1",
     "gulp-watch": "^0.7.0"
   },
   "engines": {
